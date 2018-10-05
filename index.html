@@ -1,0 +1,78 @@
+<html>
+
+<head>
+    <title>My first three.js app</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%
+        }
+    </style>
+</head>
+
+<body>
+    <script src="three.js/build/three.min.js"></script>
+    <script src="./js/shaders/CopyShader.js"></script>
+    <script src="./Filter/VerticalBlur.js"></script>
+    <script src="./Filter/DotScreenShader.js"></script>
+
+    <script src="./js/postprocessing/EffectComposer.js"></script>
+    <script src="./js/postprocessing/RenderPass.js"></script>
+    <script src="./js/postprocessing/ShaderPass.js"></script>
+
+    <script>
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        let renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        var geometry = new THREE.BoxGeometry(1, 1, 1);
+        var material = new THREE.MeshPhongMaterial({color: 0x7777ff});
+        var cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        var light = new THREE.PointLight( 0xff0000, 1, 100 );
+        light.position.set( 0, 10, 0 );
+        scene.add( light );
+
+        var light = new THREE.AmbientLight( 0x404040 ); // soft white light
+        scene.add( light );
+
+        camera.position.z = 5;
+
+        let composer = new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene, camera));
+        var effect = new THREE.ShaderPass(THREE.DotScreenShader);
+        effect.uniforms['scale'].value = Math.sin(Math.random()) * 0.1;
+        effect.renderToScreen = true;
+        composer.addPass(effect);
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onWindowResize, false);
+
+        var animate = function () {
+            requestAnimationFrame(animate);
+            effect.uniforms['scale'].value = Math.sin(Math.random()) * 0.06;
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+
+            composer.render();
+        };
+
+        animate();
+    </script>
+</body>
+
+</html>
